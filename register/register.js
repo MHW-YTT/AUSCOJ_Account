@@ -129,7 +129,7 @@ async function checkApiStatus() {
     const statusText = document.getElementById('apiStatusText');
     
     try {
-        const response = await fetch(`${API_BASE_URL}/health`);
+        const response = await fetch(`${API_BASE_URL}health`);
         if (response.ok) {
             const data = await response.json();
             statusDot.className = 'status-dot online';
@@ -294,7 +294,7 @@ async function handleRegister(event) {
     try {
         // 发送明文密码
         // 后端 app (3).py 的 /register 接口会进行 SHA-256 加密
-        const response = await fetch(`${API_BASE_URL}/register`, {
+        const response = await fetch(`${API_BASE_URL}register`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
