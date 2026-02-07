@@ -13,8 +13,8 @@ async function initConfig() {
     try {
         // 1. 加载 API URL
         try {
-            console.log('正在获取 API URL: https://auoj.ytt11.xyz/play/u.json');
-            const uRes = await fetch('https://auoj.ytt11.xyz/play/u.json');
+            console.log('正在获取 API URL: https://auoj.ytt0.top/play/u.json');
+            const uRes = await fetch('https://auoj.ytt0.top/play/u.json');
             if (uRes.ok) {
                 const uText = await uRes.text();
                 try {
@@ -33,8 +33,8 @@ async function initConfig() {
 
         // 2. 加载 API Key
         try {
-            console.log('正在获取 API Key: https://auoj.ytt11.xyz/play/k.json');
-            const kRes = await fetch('https://auoj.ytt11.xyz/play/k.json');
+            console.log('正在获取 API Key: https://auoj.ytt11.xyz/play/kn.json');
+            const kRes = await fetch('https://auoj.ytt11.xyz/play/kn.json');
             if (kRes.ok) {
                 const kText = await kRes.text();
                 try {
