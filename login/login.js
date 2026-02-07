@@ -53,14 +53,13 @@ async function handleLogin(event) {
     showLoginLoading('正在验证用户信息...');
     
     try {
-        // 【核心】直接发送明文密码
-        // 后端 app (3).py 的 /token 接口会进行 SHA-256 加密
-        const response = await fetch(`${API_BASE_URL}token?id=${encodeURIComponent(username)}&pw=${encodeURIComponent(password)}`);
+        // 【修复】添加了斜杠 /
+        const response = await fetch(`${API_BASE_URL}/token?id=${encodeURIComponent(username)}&pw=${encodeURIComponent(password)}`);
         const result = await response.json();
         
         if (result.success) {
-            // 登录成功，获取用户详细信息
-            const userRes = await fetch(`${API_BASE_URL}get?id=${encodeURIComponent(username)}`);
+            // 【修复】添加了斜杠 /
+            const userRes = await fetch(`${API_BASE_URL}/get?id=${encodeURIComponent(username)}`);
             const userData = await userRes.json();
             
             let beans = 0;
@@ -73,7 +72,7 @@ async function handleLogin(event) {
             
             showLoginInfo(username, beans, exp);
 
-            // 【新增】登录成功后，跳转到自定义协议
+            // 登录成功后，跳转到自定义协议
             window.open(`auscoj://login?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`);
         } else {
             throw new Error(result.error || '登录失败');
