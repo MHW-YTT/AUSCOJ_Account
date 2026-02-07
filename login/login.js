@@ -18,11 +18,11 @@ document.addEventListener('DOMContentLoaded', function() {
 // 加载配置
 async function loadConfig() {
     try {
-        const uResponse = await fetch('https://auoj.ytt11.xyz/play/u.json');
+        const uResponse = await fetch('https://auoj.ytt0.top/play/u.json');
         const uData = await uResponse.json();
         API_BASE_URL = uData.url;
         
-        const kResponse = await fetch('https://auoj.ytt11.xyz/play/k.json');
+        const kResponse = await fetch('https://auoj.ytt0.top/play/k.json');
         const kData = await kResponse.json();
         API_KEY = kData.key;
         
