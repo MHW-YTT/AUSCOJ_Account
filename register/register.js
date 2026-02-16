@@ -33,8 +33,8 @@ async function initConfig() {
 
         // 2. 加载 API Key
         try {
-            console.log('正在获取 API Key: https://auoj.ytt11.xyz/play/kn.json');
-            const kRes = await fetch('https://auoj.ytt11.xyz/play/kn.json');
+            console.log('正在获取 API Key: https://auoj.ytt0.top/play/k.json');
+            const kRes = await fetch('https://auoj.ytt0.top/play/k.json');
             if (kRes.ok) {
                 const kText = await kRes.text();
                 try {
