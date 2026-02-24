@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         <div class="success-icon">🔐</div>
                         <h4>验证码生成成功</h4>
                         <p>验证码: <strong>${result.code}</strong></p>
-                        <p>请将此验证码发送给邮箱: ${email}</p>
+                        <p>请将此验证码发送给邮箱:verify@email.ytt0.top</p>
                     </div>
                 `, 'success');
             } else {
