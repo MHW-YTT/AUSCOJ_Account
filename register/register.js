@@ -121,6 +121,34 @@ document.addEventListener('DOMContentLoaded', async function() {
             await checkInviteCode(inviteCode);
         }
     });
+    
+    // 获取验证码按钮点击事件
+    document.getElementById('getInviteCodeBtn').addEventListener('click', async function() {
+        const email = document.getElementById('email').value.trim();
+        if (!email) {
+            showResult('请先输入邮箱地址', 'error');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`${API_BASE_URL}/create_verify_code?email=${encodeURIComponent(email)}`);
+            const result = await response.json();
+            if (result.success) {
+                showResult(`
+                    <div class="success-state">
+                        <div class="success-icon">🔐</div>
+                        <h4>验证码生成成功</h4>
+                        <p>验证码: <strong>${result.code}</strong></p>
+                        <p>请将此验证码发送给邮箱: ${email}</p>
+                    </div>
+                `, 'success');
+            } else {
+                showResult(result.error || '生成验证码失败', 'error');
+            }
+        } catch (error) {
+            showResult('网络错误，请重试', 'error');
+        }
+    });
 });
 
 // ==================== API状态检查 ====================
@@ -321,10 +349,10 @@ async function handleRegister(event) {
                             <span class="detail-label">用户名：</span>
                             <span class="detail-value">${username}</span>
                         </div>
-                        ${email ? `<div class="detail-item">
+                        <div class="detail-item">
                             <span class="detail-label">邮箱：</span>
                             <span class="detail-value">${email}</span>
-                        </div>` : ''}
+                        </div>
                         <div class="detail-item">
                             <span class="detail-label">邀请码：</span>
                             <span class="detail-value">${inviteCode}</span>
@@ -386,7 +414,7 @@ function validateInput(username, password, confirmPassword, email, inviteCode) {
         showResult('两次输入的密码不一致', 'error');
         return false;
     }
-    if (email && !validateEmail(email)) {
+    if (!validateEmail(email)) {
         showResult('邮箱格式不正确', 'error');
         return false;
     }
