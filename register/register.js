@@ -130,26 +130,159 @@ document.addEventListener('DOMContentLoaded', async function() {
             return;
         }
         
+        // 验证邮箱格式
+        if (!validateEmail(email)) {
+            showResult('请输入有效的邮箱地址', 'error');
+            return;
+        }
+        
+        // 禁用按钮，防止重复点击
+        const btn = this;
+        btn.disabled = true;
+        btn.textContent = '处理中...';
+        
         try {
             const response = await fetch(`${API_BASE_URL}/create_verify_code?email=${encodeURIComponent(email)}`);
             const result = await response.json();
             if (result.success) {
                 showResult(`
-                    <div class="success-state">
-                        <div class="success-icon">🔐</div>
-                        <h4>验证码生成成功</h4>
-                        <p>验证码: <strong>${result.code}</strong></p>
-                        <p>请将此验证码发送给邮箱:verify@email.ytt0.top</p>
+                    <div class="verify-state">
+                        <div class="verify-icon">📧</div>
+                        <h4>验证码已生成</h4>
+                        <p class="verify-code">验证码: <strong>${result.code}</strong></p>
+                        <div class="verify-steps">
+                            <p><strong>请按以下步骤操作：</strong></p>
+                            <p>1. 将验证码 <strong>${result.code}</strong> 发送到邮箱:</p>
+                            <p class="target-email">verify@email.ytt0.top</p>
+                            <p>2. 系统将自动检测并为您发送邀请码</p>
+                        </div>
+                        <div class="polling-status" id="pollingStatus">
+                            <div class="loading-spinner-small"></div>
+                            <span>正在等待验证邮件...</span>
+                        </div>
                     </div>
-                `, 'success');
+                `, 'info');
+                
+                // 开始轮询检查邮件
+                startPollingCheckEmails(email);
             } else {
                 showResult(result.error || '生成验证码失败', 'error');
+                btn.disabled = false;
+                btn.textContent = '获取验证码';
             }
         } catch (error) {
             showResult('网络错误，请重试', 'error');
+            btn.disabled = false;
+            btn.textContent = '获取验证码';
         }
     });
 });
+
+// ==================== 轮询检查邮件 ====================
+let pollingInterval = null;
+let pollingCount = 0;
+const MAX_POLLING_ATTEMPTS = 60; // 最多轮询60次（约10分钟）
+const POLLING_INTERVAL = 10000; // 每10秒轮询一次
+
+async function startPollingCheckEmails(email) {
+    pollingCount = 0;
+    
+    const btn = document.getElementById('getInviteCodeBtn');
+    
+    // 开始轮询
+    pollingInterval = setInterval(async () => {
+        pollingCount++;
+        
+        // 超过最大次数，停止轮询
+        if (pollingCount > MAX_POLLING_ATTEMPTS) {
+            stopPolling();
+            showResult(`
+                <div class="error-state">
+                    <div class="error-icon">⏰</div>
+                    <h4>验证超时</h4>
+                    <p>未能在规定时间内检测到验证邮件，请重试</p>
+                </div>
+            `, 'error');
+            btn.disabled = false;
+            btn.textContent = '获取验证码';
+            return;
+        }
+        
+        try {
+            const response = await fetch(`${API_BASE_URL}/check_emails`);
+            const result = await response.json();
+            
+            console.log(`[轮询 ${pollingCount}] 结果:`, result);
+            
+            // 更新轮询状态显示
+            const pollingStatus = document.getElementById('pollingStatus');
+            if (pollingStatus) {
+                pollingStatus.innerHTML = `
+                    <div class="loading-spinner-small"></div>
+                    <span>正在检测邮件... (${pollingCount}/${MAX_POLLING_ATTEMPTS})</span>
+                `;
+            }
+            
+            // 检查是否有匹配的结果
+            if (result.results && result.results.length > 0) {
+                const matchedResult = result.results.find(r => r.email === email && r.matched && r.invite_sent);
+                
+                if (matchedResult) {
+                    stopPolling();
+                    
+                    showResult(`
+                        <div class="success-state">
+                            <div class="success-icon">🎉</div>
+                            <h4>验证成功！</h4>
+                            <p>邀请码已发送到您的邮箱: <strong>${email}</strong></p>
+                            <p>请查收邮件并使用邀请码完成注册</p>
+                        </div>
+                    `, 'success');
+                    
+                    btn.disabled = false;
+                    btn.textContent = '获取验证码';
+                }
+            }
+            
+            // 如果没有待验证的邮箱了，说明验证码已过期或已处理
+            if (result.pending_count === 0 && pollingCount > 3) {
+                // 可能已经处理过了，检查是否有结果
+                if (!result.results || result.results.length === 0) {
+                    stopPolling();
+                    showResult(`
+                        <div class="error-state">
+                            <div class="error-icon">⚠️</div>
+                            <h4>验证码已过期</h4>
+                            <p>请重新获取验证码</p>
+                        </div>
+                    `, 'error');
+                    btn.disabled = false;
+                    btn.textContent = '获取验证码';
+                }
+            }
+            
+        } catch (error) {
+            console.error('[轮询] 错误:', error);
+            // 网络错误不停止轮询，继续尝试
+        }
+    }, POLLING_INTERVAL);
+    
+    // 立即执行一次检查
+    try {
+        const response = await fetch(`${API_BASE_URL}/check_emails`);
+        const result = await response.json();
+        console.log('[轮询] 立即检查结果:', result);
+    } catch (error) {
+        console.error('[轮询] 立即检查错误:', error);
+    }
+}
+
+function stopPolling() {
+    if (pollingInterval) {
+        clearInterval(pollingInterval);
+        pollingInterval = null;
+    }
+}
 
 // ==================== API状态检查 ====================
 async function checkApiStatus() {
@@ -434,14 +567,20 @@ function showResult(content, type) {
     const resultArea = document.getElementById('result');
     const style = document.createElement('style');
     style.textContent = `
-        .loading-state, .success-state, .error-state { text-align: center; }
+        .loading-state, .success-state, .error-state, .verify-state { text-align: center; }
         .loading-spinner {
             width: 40px; height: 40px; border: 3px solid rgba(99, 102, 241, 0.2);
             border-top-color: var(--primary-color); border-radius: 50%;
             margin: 0 auto 16px; animation: spin 1s linear infinite;
         }
+        .loading-spinner-small {
+            width: 16px; height: 16px; border: 2px solid rgba(99, 102, 241, 0.2);
+            border-top-color: var(--primary-color); border-radius: 50%;
+            display: inline-block; vertical-align: middle; margin-right: 8px;
+            animation: spin 1s linear infinite;
+        }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .success-icon, .error-icon { font-size: 3rem; margin-bottom: 16px; display: block; }
+        .success-icon, .error-icon, .verify-icon { font-size: 3rem; margin-bottom: 16px; display: block; }
         .success-details {
             background: rgba(255, 255, 255, 0.5); border-radius: 8px; padding: 16px;
             margin: 20px 0; text-align: left;
@@ -453,6 +592,38 @@ function showResult(content, type) {
         .detail-item:last-child { margin-bottom: 0; border-bottom: none; }
         .detail-label { font-weight: 500; color: var(--text-secondary); }
         .detail-value { color: var(--text-primary); }
+        
+        /* 验证状态样式 */
+        .verify-state {
+            background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
+            border-radius: 12px; padding: 24px;
+        }
+        .verify-code { font-size: 1.2rem; margin: 16px 0; }
+        .verify-code strong {
+            font-size: 1.5rem; color: var(--primary-color);
+            background: rgba(99, 102, 241, 0.1); padding: 4px 12px; border-radius: 6px;
+        }
+        .verify-steps {
+            background: rgba(255, 255, 255, 0.7); border-radius: 8px; padding: 16px;
+            margin: 16px 0; text-align: left;
+        }
+        .verify-steps p { margin: 8px 0; }
+        .target-email {
+            font-size: 1.1rem; color: var(--primary-color); font-weight: bold;
+            background: rgba(99, 102, 241, 0.1); padding: 8px 16px; border-radius: 6px;
+            display: inline-block; margin: 8px 0;
+        }
+        .polling-status {
+            margin-top: 16px; padding: 12px;
+            background: rgba(99, 102, 241, 0.1); border-radius: 8px;
+            color: var(--primary-color); font-size: 0.9rem;
+        }
+        
+        /* info 类型样式 */
+        .result-area.info {
+            background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
+            border: 1px solid #bae6fd;
+        }
     `;
     document.head.appendChild(style);
     
