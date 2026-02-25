@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 // ==================== 轮询检查邮件 ====================
 let pollingInterval = null;
 let pollingCount = 0;
-const MAX_POLLING_ATTEMPTS = 30; // 最多轮询60次（约10分钟）
+const MAX_POLLING_ATTEMPTS = 60; // 最多轮询60次（约10分钟）
 const POLLING_INTERVAL = 10000; // 每10秒轮询一次
 
 async function startPollingCheckEmails(email) {
@@ -225,27 +225,17 @@ async function startPollingCheckEmails(email) {
             
             // 检查是否有匹配的结果
             if (result.results && result.results.length > 0) {
-                const matchedResult = result.results.find(r => r.email === email && r.matched && r.invite_code);
+                const matchedResult = result.results.find(r => r.email === email && r.matched && r.invite_sent);
                 
                 if (matchedResult) {
                     stopPolling();
-                    
-                    // 自动填充邀请码到输入框
-                    const inviteCodeInput = document.getElementById('inviteCode');
-                    if (inviteCodeInput) {
-                        inviteCodeInput.value = matchedResult.invite_code;
-                        inviteCodeInput.style.borderColor = 'var(--success-color)';
-                    }
                     
                     showResult(`
                         <div class="success-state">
                             <div class="success-icon">🎉</div>
                             <h4>验证成功！</h4>
-                            <p>您的专属邀请码：</p>
-                            <div class="invite-code-display">
-                                <strong>${matchedResult.invite_code}</strong>
-                            </div>
-                            <p class="invite-tip">邀请码已自动填入输入框，请完成注册</p>
+                            <p>邀请码已发送到您的邮箱: <strong>${email}</strong></p>
+                            <p>请查收邮件并使用邀请码完成注册</p>
                         </div>
                     `, 'success');
                     
@@ -602,25 +592,6 @@ function showResult(content, type) {
         .detail-item:last-child { margin-bottom: 0; border-bottom: none; }
         .detail-label { font-weight: 500; color: var(--text-secondary); }
         .detail-value { color: var(--text-primary); }
-        
-        /* 邀请码显示样式 */
-        .invite-code-display {
-            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
-            color: white;
-            padding: 16px 24px;
-            border-radius: 10px;
-            margin: 16px 0;
-            font-size: 1.3rem;
-            letter-spacing: 2px;
-            word-break: break-all;
-        }
-        .invite-code-display strong {
-            font-family: 'Courier New', monospace;
-        }
-        .invite-tip {
-            color: var(--success-color);
-            font-weight: 500;
-        }
         
         /* 验证状态样式 */
         .verify-state {
