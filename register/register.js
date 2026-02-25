@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 // ==================== 轮询检查邮件 ====================
 let pollingInterval = null;
 let pollingCount = 0;
-const MAX_POLLING_ATTEMPTS = 60; // 最多轮询60次（约10分钟）
+const MAX_POLLING_ATTEMPTS = 30; // 最多轮询60次（约10分钟）
 const POLLING_INTERVAL = 10000; // 每10秒轮询一次
 
 async function startPollingCheckEmails(email) {
