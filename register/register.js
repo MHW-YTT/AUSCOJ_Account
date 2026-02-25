@@ -244,23 +244,6 @@ async function startPollingCheckEmails(email) {
                 }
             }
             
-            // 如果没有待验证的邮箱了，说明验证码已过期或已处理
-            if (result.pending_count === 0 && pollingCount > 3) {
-                // 可能已经处理过了，检查是否有结果
-                if (!result.results || result.results.length === 0) {
-                    stopPolling();
-                    showResult(`
-                        <div class="error-state">
-                            <div class="error-icon">⚠️</div>
-                            <h4>验证码已过期</h4>
-                            <p>请重新获取验证码</p>
-                        </div>
-                    `, 'error');
-                    btn.disabled = false;
-                    btn.textContent = '获取验证码';
-                }
-            }
-            
         } catch (error) {
             console.error('[轮询] 错误:', error);
             // 网络错误不停止轮询，继续尝试
