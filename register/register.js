@@ -130,9 +130,16 @@ document.addEventListener('DOMContentLoaded', async function() {
             return;
         }
         
-        // 验证邮箱格式
+        // 验证邮箱格式（只允许QQ邮箱）
         if (!validateEmail(email)) {
-            showResult('请输入有效的邮箱地址', 'error');
+            showResult('请输入有效的QQ邮箱地址（例如：xxx@qq.com）', 'error');
+            return;
+        }
+        
+        // 检查邮箱是否已被使用
+        const emailUsed = await checkEmailUsed(email);
+        if (emailUsed) {
+            showResult('该邮箱已被注册使用，请使用其他邮箱', 'error');
             return;
         }
         
@@ -378,9 +385,22 @@ async function checkInviteCode(code) {
 
 // ==================== 邮箱验证 ====================
 function validateEmail(email) {
-    if (!email) return true;
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) return false;
+    // 只允许QQ邮箱
+    const re = /^[^\s@]+@qq\.com$/i;
     return re.test(email);
+}
+
+// ==================== 检查邮箱是否已被使用 ====================
+async function checkEmailUsed(email) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/check_email_used?email=${encodeURIComponent(email)}`);
+        const data = await response.json();
+        return data.used;
+    } catch (error) {
+        console.error('检查邮箱失败:', error);
+        return false;
+    }
 }
 
 // ==================== 密码强度检测 ====================
