@@ -189,7 +189,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 let pollingInterval = null;
 let pollingCount = 0;
 const MAX_POLLING_ATTEMPTS = 60; // 最多轮询60次
-const POLLING_INTERVAL = 5000; // 每5秒轮询一次
+const POLLING_INTERVAL = 10000; // 每10秒轮询一次
 
 async function startPollingCheckEmails(email) {
     pollingCount = 0;
