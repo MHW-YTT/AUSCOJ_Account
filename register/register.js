@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     });
     
-    // 获取验证码按钮点击事件
+    // 获取邀请码按钮点击事件
     document.getElementById('getInviteCodeBtn').addEventListener('click', async function() {
         const email = document.getElementById('email').value.trim();
         if (!email) {
@@ -175,12 +175,12 @@ document.addEventListener('DOMContentLoaded', async function() {
             } else {
                 showResult(result.error || '生成验证码失败', 'error');
                 btn.disabled = false;
-                btn.textContent = '获取验证码';
+                btn.textContent = '获取邀请码';
             }
         } catch (error) {
             showResult('网络错误，请重试', 'error');
             btn.disabled = false;
-            btn.textContent = '获取验证码';
+            btn.textContent = '获取邀请码';
         }
     });
 });
@@ -188,8 +188,8 @@ document.addEventListener('DOMContentLoaded', async function() {
 // ==================== 轮询检查邮件 ====================
 let pollingInterval = null;
 let pollingCount = 0;
-const MAX_POLLING_ATTEMPTS = 60; // 最多轮询60次（约10分钟）
-const POLLING_INTERVAL = 10000; // 每10秒轮询一次
+const MAX_POLLING_ATTEMPTS = 60; // 最多轮询60次
+const POLLING_INTERVAL = 5000; // 每5秒轮询一次
 
 async function startPollingCheckEmails(email) {
     pollingCount = 0;
@@ -211,7 +211,7 @@ async function startPollingCheckEmails(email) {
                 </div>
             `, 'error');
             btn.disabled = false;
-            btn.textContent = '获取验证码';
+            btn.textContent = '获取邀请码';
             return;
         }
         
@@ -257,7 +257,7 @@ async function startPollingCheckEmails(email) {
                     `, 'success');
                     
                     btn.disabled = false;
-                    btn.textContent = '获取验证码';
+                    btn.textContent = '获取邀请码';
                 }
             }
             
@@ -295,7 +295,7 @@ async function startPollingCheckEmails(email) {
                     </div>
                 `, 'success');
                 btn.disabled = false;
-                btn.textContent = '获取验证码';
+                btn.textContent = '获取邀请码';
             }
         }
     } catch (error) {
